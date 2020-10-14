@@ -1,0 +1,32 @@
+{
+   "name": "Techvani",
+   "version": "1.0",
+   "description": "Buy at the best price !!",
+   "permissions": ["declarativeContent",
+                    "tabs",
+                   "activeTab",
+                   "http://*/*",
+                   "https://*/*",
+                    "storage"],
+   "background": {
+     "scripts": ["background.js"],
+     "persistent": false
+   },
+   "page_action": {
+     "default_popup": "default.html",
+     "default_icon": {
+       "16": "techvani1.png",
+       "32": "techvani1.png",
+       "48": "techvani1.png",
+       "128": "techvani1.png"
+     }
+   },
+   "icons": {
+     "16": "techvani1.png",
+     "32": "techvani1.png",
+     "48": "techvani1.png",
+     "128": "techvani1.png"
+   },
+   "options_page": "options.html",
+   "manifest_version": 2
+ }
