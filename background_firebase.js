@@ -1,5 +1,5 @@
 console.log("background script loaded, this works every time the broweser is ran!");
-//alert("PREPARE TO BE HUMBLED AND WEEP BY GLORY OF MY BRAIN!");
+//alert("PREPARE TO BE HUMBLED AND WEEP BY GLORY OF PRIYAM MEHTA'S BRAIN!");
 //------------------------------------------------------------------------------------------------
 var webdiv;
 var firebaseConfig = {
@@ -58,6 +58,8 @@ function get_stuff(){
                 currentWebsite = site;
                 break;
         }}
+        try{
+            console.log(currentWebsite);
         if (currentWebsite == "null"){
             currentProductId= "null";
             console.log("you dont need us right now");
@@ -65,7 +67,7 @@ function get_stuff(){
         else if(currentWebsite == "flipkart"){
             var currentProductId = url.match(/[?]pid=[a-zA-Z0-9]+/gm);
             currentProductId = currentProductId[0].split("?pid=")[1];
-            console.log(currentProductId);
+            console.log(currentProductId); 
             }
         else if(currentWebsite == "amazon"){
             var currentProductId = url.match(/[B]+[^a-zA-Z][a-zA-Z0-9]+/gm);
@@ -77,6 +79,14 @@ function get_stuff(){
           currentProductId = currentProductId[0].replace("p/","");
           console.log(currentProductId);
              }
+        else if (currentWebsite == "paytm" || currentWebsite == "paytmmall"){
+          currentProductId = "paytm";
+          console.log(currentProductId);
+        }
+        }
+        catch(err){
+            console.log("error in site detection by var CurrentWebsite is : ", err);
+        }
         if(currentWebsite != "null"){  // works only for the given sites above, 
         //NOTE: without this it  will keep loading the last opened data, which can be used later
             for(var gpidKey in db[currentWebsite]){
@@ -86,6 +96,7 @@ function get_stuff(){
                     amazonPriceLoad(generalpid);
                     flipkartPriceLoad(generalpid);
                     cromaPriceLoad(generalpid);
+                    paytmPriceLoad(generalpid);
                     break;
                     }
             }
@@ -131,74 +142,6 @@ function get_HTML_Price(site,link){
         }
     };
     x.send(); 
-}
-//------------------------------------------------------------------------------------------------
-//  THIS SECTION CONTAINS ALL THE REGULAR EXPRESSIONS
-function amazon(html1,link){
-    try{
-        console.log("executing regex amazon!");
-        html = html1; // thus we can delete the origirnal response pages, to reduce the size
-        price = html.match(/"priceblock_ourprice"[a-z]*[^a-z]*[a-z]*[^a-z]*[a-z]*[^a-z]*[a-z]*[^a-z]*[a-z]*[^a-z]*[a-z]*[^a-z]*[a-z]*[^a-z]*[a-z]*[^a-z]*[a-z]*[^a-z]*[a-z]*[^a-z]*[a-z]*[^a-z]*[a-z]*[^a-z]*[a-z]*[^a-z][^a-z]*/gm);
-        price = price[0].match(/[>][^a-z]*[^</]/);
-        price = price[0].replace(">","");//₹
-        price2 = price.replace("₹","");// other var as price is fro users, easy to read 
-        price2 = price2.replace(",",""); // price2 is for sorting
-        price2 = price2.match(/[0-9]+[^.]\d/gm);
-        price2 = Number(price2);
-        //for(var i =0;i<=1000;i++); // time loop, remove this if unnecessary.
-        console.log("price is ",price);
-        setPrice(["amazon",link,price,price2]);
-    }    
-    catch(err){
-            console.log("error in amazon as " +err);
-            //alert("error in Amazon_regex2_2 as " +err)
-           // console.log("recurring...");
-            //amazon()
-        }
-}
-function flipkart(html1,link){
-    try{
-        console.log("executing regex flipkart!");
-        html = html1;
-        price = html.match( /"_1vC4OE _3qQ9m1"[>][^a-z]+[<]/gm);
-        price = price[0].match(/[>][^a-z]*[^</]/);
-        price = price[0].replace(">","");//₹
-        price2 = price.replace("₹","");// other var as price is fro users, easy to read 
-        price2 = price2.replace(",",""); // price2 is for sorting
-        price2 = price2.match(/[0-9]+[^.]\d/gm);
-        price2 = Number(price2);
-        //for(var i =0;i<=1000;i++); // time loop, remove this if unnecessary.
-        console.log("price is ",price);
-        setPrice(["flipkart",link,price,price2]);
-    }    
-    catch(err){
-            console.log("error in flipkart as " +err);
-            //alert("error in Amazon_regex2_2 as " +err)
-            //console.log("recurring...");
-            //flipakrt();
-        }
-}
-function croma(html1,link){
-    try{
-        console.log("executing regex croma!");
-        html = html1;
-        price = html.match(/"pdpPrice"[>][^a-zA-Z]*[<]/gm);
-        price = price[0].match(/[>][^a-z]*[^<]/);
-        price = price[0].replace(">","");//₹
-        price2 = price.replace("₹","");// other var as price is fro users, easy to read 
-        price2 = price2.replace(",",""); // price2 is for sorting
-        price2 = price2.match(/[0-9]+[^.]\d/gm);
-        price2 = Number(price2);
-        //for(var i =0;i<=1000;i++); // time loop, remove this if unnecessary.
-        console.log("price is ",price);
-        setPrice(["croma",link,price,price2]);
-    }    
-    catch(err){
-            console.log("error in croma as " +err);
-            //alert("error in Amazon_regex2_2 as " +err)
-            //console.log("recurring...");
-            //croma();
-        }
 }
 //------------------------------------------------------------------------------------------------
 // Final parts
@@ -333,11 +276,31 @@ function cromaPriceLoad(generalpid){
         alert(error);
     })
 }
+function paytmPriceLoad(generalpid){
+    var flio = "paytm";
+    const priceid = (flio.concat("/").concat(generalpid));
+    const f = ft.doc(priceid);
+    f.get().then(function(doc){
+        if (doc && doc.exists){
+            const myData = doc.data();
+            const price = myData.price ;
+            const link = myData.link;
+            var price2 = price.replace(",",""); // price2 is for sorting
+            price2 = Number(price2);
+
+            var webdiv = `<div class="moreDiv" id="flipkartDiv" style="background-color: #f96d80;">
+            <img  id="first-pic" class="pic-btn default-pic" src="https://logos-download.com/wp-content/uploads/2016/09/Flipkart_logo-700x185.png" alt="">
+            <div class="default-pr-btn fl-rt">
+            <span id="flipkartPrice" class="pr-btn defaultPrice"> Rs `+price+`</span>
+            <a class="btn fl-rt pr-btn pic-btn defaultButton" id="flipkartButton"  role="button" target="_blank" href=`+link+`><div class="defaultBtnText">Go to store
+            
+            </div></a>
+            </div>
+            </div>`
+            setPrice([webdiv,link,price,price2]);
+        }
+    }).catch(function(error){
+        alert(error);
+    })
+}
 //------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
